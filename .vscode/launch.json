@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "java",
+        "name": "Launch JavaFX App",
+        "request": "launch",
+        "mainClass": "FocusTimerApp.App", // 主類名，需修改為你的主類名稱
+        "vmArgs": "--module-path \"C:/tool/javafx-sdk-21.0.5/lib\" --add-modules javafx.controls,javafx.media"
+      }
+    ]
+  }

@@ -1,0 +1,24 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "type": "shell",
+        "label": "compile",
+        "command": "javac",
+        "args": [
+          "--module-path",
+          "C:/tool/javafx-sdk-21.0.5/lib", // 替換為你的 JavaFX 路徑
+          "--add-modules",
+          "javafx.controls,javafx.media",
+          "-d",
+          "bin",
+          "src/*.java" // 編譯所有 Java 源文件
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      }
+    ]
+  }
+  

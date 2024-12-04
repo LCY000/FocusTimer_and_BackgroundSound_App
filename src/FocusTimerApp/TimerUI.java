@@ -1,5 +1,6 @@
+package FocusTimerApp;
 import javax.swing.*;
-
+import javafx.embed.swing.JFXPanel;
 import com.formdev.flatlaf.FlatLightLaf;
 import java.awt.*;
 
@@ -8,8 +9,11 @@ public class TimerUI {
     private JPanel mainPanel, topPanel, bottomPanel;
     private JPanel contentPanel, timePanel;
     private CardLayout cardLayout; // 用於切換專注時間/正計時界面
+    private JLabel phaseDisplayLabel;
     private JLabel timeDisplayLabel; // 新增的顯示時間的Label
     private JSeparator separator;
+    
+    private TimerLogic timerLogic; // 計時器邏輯
 
     public void createAndShowGUI() {
         FlatLightLaf.setup(); // 設定 FlatLaf 主題
@@ -57,9 +61,12 @@ public class TimerUI {
         mainPanel.add(contentPanel, gbc);
 
         // **第3區域: 時間顯示區**
-        timePanel = new JPanel();
-        timeDisplayLabel = new JLabel("00:00", SwingConstants.CENTER);
+        timePanel = new JPanel(new GridLayout(2,1));
+        phaseDisplayLabel = new JLabel(" ", SwingConstants.CENTER);
+        phaseDisplayLabel.setFont(new Font("微軟正黑體", Font.BOLD, 14));
+        timeDisplayLabel = new JLabel(" ", SwingConstants.CENTER);
         timeDisplayLabel.setFont(new Font("SansSerif", Font.BOLD, 24));
+        timePanel.add(phaseDisplayLabel, BorderLayout.CENTER);
         timePanel.add(timeDisplayLabel, BorderLayout.CENTER);
 
         gbc.gridx = 0;
@@ -167,6 +174,55 @@ public class TimerUI {
         gbc.insets = new Insets(0, 0, 0, 0);
         panel.add(controlButtons, gbc);
 
+        // **按鈕邏輯**
+        pauseBtn.setEnabled(false); //預設不能按
+        stopBtn.setEnabled(false);
+
+        startBtn.addActionListener(e -> {
+            int focusTime = Integer.parseInt(focusTimeField.getText());
+            int breakTime = Integer.parseInt(breakTimeField.getText());
+            
+            timerLogic = new TimerLogic(
+                focusTime,
+                breakTime,
+                () -> SwingUtilities.invokeLater(() -> timeDisplayLabel.setText(timerLogic.formatTime())),
+                () -> SwingUtilities.invokeLater(() -> {
+                    String phase = timerLogic.isFocusPhase() ? "專注階段" : "休息階段";
+                    phaseDisplayLabel.setText(phase);
+                    JOptionPane.showMessageDialog(frame, phase + "開始！");
+                })
+            );
+            timerLogic.start();
+            phaseDisplayLabel.setText("專注階段");  //預設顯示
+    
+            startBtn.setEnabled(false);
+            pauseBtn.setEnabled(true);
+            stopBtn.setEnabled(true);
+        });
+    
+        pauseBtn.addActionListener(e -> {
+            if (timerLogic != null) {
+                if (pauseBtn.getText().equals("暫停")) {
+                    timerLogic.pause();
+                    pauseBtn.setText("繼續");
+                } else {
+                    timerLogic.resume();
+                    pauseBtn.setText("暫停");
+                }
+            }
+        });
+    
+        stopBtn.addActionListener(e -> {
+            if (timerLogic != null) {
+                timerLogic.stop();
+            }
+            timeDisplayLabel.setText("00:00");
+            startBtn.setEnabled(true);
+            pauseBtn.setEnabled(false);
+            stopBtn.setEnabled(false);
+            pauseBtn.setText("暫停"); // 恢復按鈕名稱
+        });
+
         return panel;
     }
 
@@ -270,23 +326,33 @@ public class TimerUI {
 
     // 背景音樂控制區
     private JPanel createBackgroundMusicPanel() {
+        // 初始化 JavaFX 環境
+        new JFXPanel();
+
         JPanel panel = new JPanel(new GridLayout(2, 1));
+        // 音樂播放器變數
+        final MP3Player[] mp3Player = {null};
 
         // 音樂選擇與控制
         JPanel musicControl = new JPanel(new FlowLayout());
         musicControl.add(new JLabel("背景音樂:"));
-        JComboBox<String> musicSelector = new JComboBox<>(new String[] { "海浪聲", "下雨聲", "夜晚聲音", "Minecraft" });
+        JComboBox<String> musicSelector = new JComboBox<>(new String[] { "海浪", "下雨", "夜晚", "Minecraft" });
         musicControl.add(musicSelector);
 
         JButton playBtn = new JButton("播放");
         JButton pauseBtn = new JButton("暫停");
-        JButton forwardBtn = new JButton("快進");
+        JButton forwardBtn = new JButton("快進30s");
         JButton stopBtn = new JButton("結束");
+
+        // 初始狀態：只有播放按鈕可用
+        pauseBtn.setEnabled(false);
+        forwardBtn.setEnabled(false);
+        stopBtn.setEnabled(false);
+
         musicControl.add(playBtn);
         musicControl.add(pauseBtn);
         musicControl.add(forwardBtn);
         musicControl.add(stopBtn);
-
         panel.add(musicControl);
 
         // 音量控制
@@ -294,8 +360,82 @@ public class TimerUI {
         volumeControl.add(new JLabel("音量:"));
         JSlider volumeSlider = new JSlider(0, 100, 50);
         volumeControl.add(volumeSlider);
-
         panel.add(volumeControl);
+
+        // **按鈕動作邏輯**
+        playBtn.addActionListener(e -> {
+            String selectedMusic = (String) musicSelector.getSelectedItem();
+            if (mp3Player[0] != null) {
+                new Thread(() -> mp3Player[0].stop()).start(); // 停止上一首音樂
+            }
+            mp3Player[0] = new MP3Player(selectedMusic);
+            new Thread(() -> {
+                // 等待 MP3Player 初始化
+                while (!mp3Player[0].isInitialized()) {
+                    try {
+                        Thread.sleep(100); // 等待初始化完成
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+                SwingUtilities.invokeLater(() -> {
+                    if (mp3Player[0].isInitialized()) {
+                        new Thread(() -> mp3Player[0].play()).start();
+                        playBtn.setEnabled(false);
+                        pauseBtn.setEnabled(true);
+                        forwardBtn.setEnabled(true);
+                        stopBtn.setEnabled(true);
+                    } else {
+                        playBtn.setEnabled(true); // 初始化失敗，允許重新選擇
+                    }
+                });
+            }).start();
+        });
+        
+        
+        stopBtn.addActionListener(e -> {
+            if (mp3Player[0] != null) {
+                new Thread(() -> mp3Player[0].stop()).start();
+                playBtn.setEnabled(true); // 停止後允許重新播放
+                pauseBtn.setEnabled(false);
+                forwardBtn.setEnabled(false);
+                stopBtn.setEnabled(false);
+                pauseBtn.setText("暫停"); // 恢復按鈕名稱
+            }
+        });
+        
+        
+        pauseBtn.addActionListener(e -> {
+            if (mp3Player[0] != null && mp3Player[0].isInitialized()) {
+                if (pauseBtn.getText().equals("暫停")) {
+                    new Thread(() -> mp3Player[0].pause()).start();
+                    pauseBtn.setText("繼續");
+                } else {
+                    new Thread(() -> mp3Player[0].resume()).start();
+                    pauseBtn.setText("暫停");
+                }
+            }
+        });
+
+        forwardBtn.addActionListener(e -> {
+            if (mp3Player[0] != null && mp3Player[0].isInitialized()) {
+                System.out.println("快進按鈕被觸發");
+                new Thread(() -> mp3Player[0].fastForward(30)).start(); // 快進 30 秒
+            } else {
+                System.out.println("快進無效：播放器未初始化");
+            }
+        });
+
+        // **音量滑塊動作邏輯**
+        volumeSlider.addChangeListener(e -> {
+            if (mp3Player[0] != null && mp3Player[0].isInitialized()) {
+                double volume = volumeSlider.getValue() / 100.0; // 音量範圍 0.0 ~ 1.0
+                new Thread(() -> mp3Player[0].setVolume(volume)).start();
+            } else {
+                System.out.println("音樂播放器未初始化，無法調整音量！");
+            }
+        });
+        
 
         return panel;
     }

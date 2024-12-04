@@ -1,7 +1,8 @@
+package FocusTimerApp;
 import javax.swing.UIManager;
 import com.formdev.flatlaf.FlatLightLaf;
 
-public class FocusTimerApp {
+public class App {
     public static void main(String[] args) {
         // 設置簡潔的 UI 風格
     // 設置 FlatLaf 主題

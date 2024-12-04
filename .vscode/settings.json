@@ -1,10 +1,10 @@
 {
-    "java.project.sourcePaths": ["src"],
-    "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
-        "lib/**/*.jar",
+        "C:/tool/javafx-sdk-21.0.5/lib/*.jar",
         "lib/flatlaf-3.5.2.jar"
-    ]
-    
-
+    ],
+    "java.project.sourcePaths": [
+        "src"
+    ],
+    "java.project.outputPath": "bin"
 }
