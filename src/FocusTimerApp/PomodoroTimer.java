@@ -3,7 +3,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class TimerLogic {
+public class PomodoroTimer {
     private ScheduledExecutorService scheduler;
     private int remainingTime; // 當前階段剩餘時間（秒）
     private int focusTime; // 專注時間（秒）
@@ -13,7 +13,7 @@ public class TimerLogic {
     private Runnable onTick; // 每秒觸發的動作
     private Runnable onPhaseChange; // 切換階段時觸發的動作
 
-    public TimerLogic(int focusMinutes, int breakMinutes, Runnable onTick, Runnable onPhaseChange) {
+    public PomodoroTimer(int focusMinutes, int breakMinutes, Runnable onTick, Runnable onPhaseChange) {
         this.focusTime = focusMinutes * 60;
         this.breakTime = breakMinutes * 60;
         this.remainingTime = focusTime;

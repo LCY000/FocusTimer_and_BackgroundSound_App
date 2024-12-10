@@ -10,10 +10,13 @@ public class TimerUI {
     private JPanel contentPanel, timePanel;
     private CardLayout cardLayout; // 用於切換專注時間/正計時界面
     private JLabel phaseDisplayLabel;
-    private JLabel timeDisplayLabel; // 新增的顯示時間的Label
+    private JLabel pomodoroTimeDisplayLabel; // 顯示時間的Label
+    private JLabel stopwatchTimeDisplayLabel; 
+
     private JSeparator separator;
     
-    private TimerLogic timerLogic; // 計時器邏輯
+    private PomodoroTimer pomodoroTimer; // 專注計時器邏輯
+    private StopwatchLogic stopwatchLogic;  // 正計時器邏輯
 
     public void createAndShowGUI() {
         FlatLightLaf.setup(); // 設定 FlatLaf 主題
@@ -63,17 +66,17 @@ public class TimerUI {
         // **第3區域: 時間顯示區**
         timePanel = new JPanel(new GridLayout(2,1));
         phaseDisplayLabel = new JLabel(" ", SwingConstants.CENTER);
-        phaseDisplayLabel.setFont(new Font("微軟正黑體", Font.BOLD, 14));
-        timeDisplayLabel = new JLabel(" ", SwingConstants.CENTER);
-        timeDisplayLabel.setFont(new Font("SansSerif", Font.BOLD, 24));
+        phaseDisplayLabel.setFont(new Font("微軟正黑體", Font.BOLD, 16));
+        pomodoroTimeDisplayLabel = new JLabel(" ", SwingConstants.CENTER);
+        pomodoroTimeDisplayLabel.setFont(new Font("SansSerif", Font.BOLD, 30));
         timePanel.add(phaseDisplayLabel, BorderLayout.CENTER);
-        timePanel.add(timeDisplayLabel, BorderLayout.CENTER);
+        timePanel.add(pomodoroTimeDisplayLabel, BorderLayout.CENTER);
 
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridheight = 2;
         gbc.fill = GridBagConstraints.BOTH;
-        gbc.insets = new Insets(10, 0, 10, 0);
+        gbc.insets = new Insets(20, 0, 10, 0);
         mainPanel.add(timePanel, gbc);
 
         // **第3區域: 背景音樂控制區**
@@ -87,7 +90,7 @@ public class TimerUI {
         gbc.gridy = 5;
         gbc.gridheight = 3;
         gbc.fill = GridBagConstraints.VERTICAL;
-        gbc.insets = new Insets(50, 10, 0, 10);
+        gbc.insets = new Insets(40, 10, 0, 10);
         mainPanel.add(bottomPanel, gbc);
 
         // **第4區域: 自訂提示音控制區**
@@ -182,17 +185,17 @@ public class TimerUI {
             int focusTime = Integer.parseInt(focusTimeField.getText());
             int breakTime = Integer.parseInt(breakTimeField.getText());
             
-            timerLogic = new TimerLogic(
+            pomodoroTimer = new PomodoroTimer(
                 focusTime,
                 breakTime,
-                () -> SwingUtilities.invokeLater(() -> timeDisplayLabel.setText(timerLogic.formatTime())),
+                () -> SwingUtilities.invokeLater(() -> pomodoroTimeDisplayLabel.setText(pomodoroTimer.formatTime())),
                 () -> SwingUtilities.invokeLater(() -> {
-                    String phase = timerLogic.isFocusPhase() ? "專注階段" : "休息階段";
+                    String phase = pomodoroTimer.isFocusPhase() ? "專注階段" : "休息階段";
                     phaseDisplayLabel.setText(phase);
                     JOptionPane.showMessageDialog(frame, phase + "開始！");
                 })
             );
-            timerLogic.start();
+            pomodoroTimer.start();
             phaseDisplayLabel.setText("專注階段");  //預設顯示
     
             startBtn.setEnabled(false);
@@ -201,22 +204,23 @@ public class TimerUI {
         });
     
         pauseBtn.addActionListener(e -> {
-            if (timerLogic != null) {
+            if (pomodoroTimer != null) {
                 if (pauseBtn.getText().equals("暫停")) {
-                    timerLogic.pause();
+                    pomodoroTimer.pause();
                     pauseBtn.setText("繼續");
                 } else {
-                    timerLogic.resume();
+                    pomodoroTimer.resume();
                     pauseBtn.setText("暫停");
                 }
             }
         });
     
         stopBtn.addActionListener(e -> {
-            if (timerLogic != null) {
-                timerLogic.stop();
+            if (pomodoroTimer != null) {
+                pomodoroTimer.stop();
             }
-            timeDisplayLabel.setText("00:00");
+            phaseDisplayLabel.setText(" ");
+            pomodoroTimeDisplayLabel.setText(" ");
             startBtn.setEnabled(true);
             pauseBtn.setEnabled(false);
             stopBtn.setEnabled(false);
@@ -245,6 +249,10 @@ public class TimerUI {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
 
+        // 顯示計時時間的標籤
+        stopwatchTimeDisplayLabel = new JLabel("00:00", SwingConstants.CENTER);
+        stopwatchTimeDisplayLabel.setFont(new Font("SansSerif", Font.BOLD, 36));
+
         JLabel textLabel = new JLabel("計時:");
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -253,6 +261,7 @@ public class TimerUI {
         gbc.fill = GridBagConstraints.VERTICAL;
         panel.add(textLabel, gbc);
 
+        // 按鈕區域
         JButton startBtn = new JButton("開始");
         gbc.gridx = 1;
         gbc.gridy = 0;
@@ -269,18 +278,58 @@ public class TimerUI {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(pauseBtn, gbc);
 
-        JButton stopBtn = new JButton("結束");
+        JButton resetBtn = new JButton("重置");
         gbc.gridx = 3;
         gbc.gridy = 0;
         gbc.gridheight = 1;
         gbc.insets = new Insets(0, 10, 0, 0);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel.add(stopBtn, gbc);
+        panel.add(resetBtn, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridheight = 2;
+        gbc.gridwidth = 4;
+        gbc.insets = new Insets(8, 0, 0, 0);
+        gbc.fill = GridBagConstraints.BOTH;
+        panel.add(stopwatchTimeDisplayLabel, gbc);
 
         borderPanel.add(panel, BorderLayout.NORTH);
 
+        // 初始按鈕狀態
+        pauseBtn.setEnabled(false);
+        resetBtn.setEnabled(false);
+
+        // **計時邏輯**
+        stopwatchLogic = new StopwatchLogic(() -> {
+            // 每秒更新時間顯示
+            SwingUtilities.invokeLater(() -> stopwatchTimeDisplayLabel.setText(stopwatchLogic.formatTime()));
+        });
+
+        // **按鈕邏輯**
+        startBtn.addActionListener(e -> {
+            stopwatchLogic.start();
+            startBtn.setEnabled(false);
+            pauseBtn.setEnabled(true);
+            resetBtn.setEnabled(true);
+        });
+
+        pauseBtn.addActionListener(e -> {
+            stopwatchLogic.pause();
+            startBtn.setEnabled(true);
+            pauseBtn.setEnabled(false);
+        });
+
+        resetBtn.addActionListener(e -> {
+            stopwatchLogic.reset();
+            startBtn.setEnabled(true);
+            pauseBtn.setEnabled(false);
+            resetBtn.setEnabled(false);
+        });
+
         return borderPanel;
     }
+
 
     // 背景音樂控制區
     private JPanel createCustomSoundPanel() {
@@ -335,7 +384,7 @@ public class TimerUI {
 
         // 音樂選擇與控制
         JPanel musicControl = new JPanel(new FlowLayout());
-        musicControl.add(new JLabel("背景音樂:"));
+        musicControl.add(new JLabel("音樂:"));
         JComboBox<String> musicSelector = new JComboBox<>(new String[] { "海浪", "下雨", "夜晚", "Minecraft" });
         musicControl.add(musicSelector);
 
