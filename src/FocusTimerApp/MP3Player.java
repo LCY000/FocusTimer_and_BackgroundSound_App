@@ -1,3 +1,5 @@
+// MP3Player
+
 package FocusTimerApp;
 
 import javafx.scene.media.Media;
@@ -8,14 +10,14 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 public class MP3Player {
-    private MediaPlayer mediaPlayer;
+    public MediaPlayer mediaPlayer;
     private Media media;
     private boolean isInitialized = false; // 表示播放器是否已初始化
 
-    public MP3Player(String fileName) {
+    public MP3Player(String folderPath, String fileName) {
         new Thread(() -> {
             try {
-                String filePath = "resources/background_sounds/" + fileName + ".mp3";
+                String filePath = folderPath + "/" + fileName + ".mp3";
                 media = new Media(new File(filePath).toURI().toString());
                 mediaPlayer = new MediaPlayer(media);
                 isInitialized = true;
@@ -27,6 +29,14 @@ public class MP3Player {
                         mediaPlayer.play(); // 自動重播
                     }
                 });
+
+                mediaPlayer.setOnReady(() -> {
+                    System.out.println("音檔: "+ fileName + ".mp3  " + "長度: " + mediaPlayer.getMedia().getDuration().toSeconds() + " 秒");
+                });
+                mediaPlayer.setOnError(() -> {
+                    System.out.println("MP3撥放發生錯誤: " + mediaPlayer.getError().getMessage());
+                });
+
             } catch (Exception e) {
                 isInitialized = false; // 標記初始化失敗
                 SwingUtilities.invokeLater(() -> {
@@ -65,24 +75,6 @@ public class MP3Player {
         }
     }
 
-    // public void fastForward(double seconds) {
-    //     if (mediaPlayer != null) {
-    //         javafx.application.Platform.runLater(() -> {
-                
-    //             //快轉前時間
-    //             System.out.println("當前播放時間: " + mediaPlayer.getCurrentTime().toSeconds() + " 秒");
-    //             double currentTime = mediaPlayer.getCurrentTime().toSeconds();
-    //             double totalDuration = mediaPlayer.getTotalDuration().toSeconds();
-    //             double newTime = Math.min(currentTime + seconds, totalDuration); // 確保不超過總時長
-    //             mediaPlayer.pause();
-    //             mediaPlayer.seek(javafx.util.Duration.seconds(newTime));
-    //             mediaPlayer.play();
-    //             System.out.println("快進到: " + newTime + " 秒");
-    //             updateTimeDisplay();
-                
-    //         });
-    //     }
-    // }
     public void fastForward(double seconds) {
         if (mediaPlayer != null) {
             javafx.application.Platform.runLater(() -> {
@@ -112,17 +104,6 @@ public class MP3Player {
             javafx.application.Platform.runLater(() -> mediaPlayer.dispose());
         }
     }
+    
 
-    // //後臺測試時間
-    // private void updateTimeDisplay() {
-    //     javafx.application.Platform.runLater(() -> {
-    //         if (mediaPlayer != null) {
-    //             System.out.println("**快轉後執行**");
-    //             System.out.println("播放器狀態: " + mediaPlayer.getStatus());
-    //             System.out.println("總時長: " + mediaPlayer.getTotalDuration());
-    //             double currentTime = mediaPlayer.getCurrentTime().toSeconds();
-    //             System.out.println("當前播放時間: " + currentTime + " 秒");
-    //         }
-    //     });
-    // }
 }

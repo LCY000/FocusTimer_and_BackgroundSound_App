@@ -1,3 +1,5 @@
+// App.java
+
 package FocusTimerApp;
 import javax.swing.UIManager;
 import com.formdev.flatlaf.FlatLightLaf;

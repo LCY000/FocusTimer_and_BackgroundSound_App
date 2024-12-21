@@ -1,3 +1,5 @@
+// TimerUI.java
+
 package FocusTimerApp;
 import javax.swing.*;
 import javafx.embed.swing.JFXPanel;
@@ -11,7 +13,11 @@ public class TimerUI {
     private CardLayout cardLayout; // 用於切換專注時間/正計時界面
     private JLabel phaseDisplayLabel;
     private JLabel pomodoroTimeDisplayLabel; // 顯示時間的Label
-    private JLabel stopwatchTimeDisplayLabel; 
+    private JLabel stopwatchTimeDisplayLabel;
+    private JComboBox<String> musicSelector; 
+    private JComboBox<String> soundSelector;
+    private double globalBgmVolume = 0.5;   // 背景音樂音量
+    private double globalBeepVolume = 0.5;  // 提示音音量
 
     private JSeparator separator;
     
@@ -192,7 +198,14 @@ public class TimerUI {
                 () -> SwingUtilities.invokeLater(() -> {
                     String phase = pomodoroTimer.isFocusPhase() ? "專注階段" : "休息階段";
                     phaseDisplayLabel.setText(phase);
+                    
+                    // 播提示音
+                    String selectedSound = (String) soundSelector.getSelectedItem();
+                    playSoundEffect(selectedSound);
+
                     JOptionPane.showMessageDialog(frame, phase + "開始！");
+
+                    
                 })
             );
             pomodoroTimer.start();
@@ -231,16 +244,27 @@ public class TimerUI {
     }
 
     // 測試音效播放
-    private void playTestSound(String soundName) {
-        // 在此實現音效播放的邏輯，例如：
-        System.out.println("播放提示音效: " + soundName);
-        // 可用 JavaFX MediaPlayer 或其他音效播放類
-    }
+    private void playSoundEffect(String soundName) {
+        // 1) 產生 MP3Player
+        MP3Player beepPlayer = new MP3Player("resources/notification_sounds", soundName);
 
-    // 調整音量
-    private void adjustVolume(int volume) {
-        System.out.println("提示音量調整為: " + volume + "%");
-        // 可實現與音量調整相關的邏輯
+        // 2) 等待初始化 & 開始播放
+        new Thread(() -> {
+            while(!beepPlayer.isInitialized()) {
+                try { Thread.sleep(50); } catch (InterruptedException e) {}
+            }
+            // 設定音量
+            beepPlayer.setVolume(globalBeepVolume);
+
+            // 只播一次音效
+            beepPlayer.mediaPlayer.setOnEndOfMedia(() -> {
+                beepPlayer.stop();
+                beepPlayer.dispose();
+            });
+
+            // 開始播
+            beepPlayer.play();
+        }).start();
     }
 
     // 正計時界面，碼表計時
@@ -339,7 +363,8 @@ public class TimerUI {
         // 1. 提示音效選擇
         JPanel soundSelectorPanel = new JPanel(new FlowLayout());
         soundSelectorPanel.add(new JLabel("提示音效:"));
-        JComboBox<String> soundSelector = new JComboBox<>(new String[] { "鈴聲", "鳥鳴聲", "鐘聲" });
+        soundSelector = new JComboBox<>(new String[] { "長笛", "提示音1", "提示音2", "蟋蟀聲" });
+        soundSelector.setSelectedIndex(0);
         soundSelectorPanel.add(soundSelector);
         customSoundPanel.add(soundSelectorPanel);
 
@@ -352,7 +377,8 @@ public class TimerUI {
         // 測試音效按鈕動作邏輯
         testSoundButton.addActionListener(e -> {
             String selectedSound = (String) soundSelector.getSelectedItem();
-            playTestSound(selectedSound); // 測試音效播放
+            System.out.print(selectedSound + "\n");
+            playSoundEffect(selectedSound); // 測試音效播放
         });
 
         // 3. 音量滑桿
@@ -364,8 +390,7 @@ public class TimerUI {
 
         // 音量滑桿邏輯
         volumeSlider.addChangeListener(e -> {
-            int volume = volumeSlider.getValue();
-            adjustVolume(volume); // 調整音量
+            globalBeepVolume = volumeSlider.getValue() / 100.0;
         });
 
         customSoundPanel.setVisible(false); // 預設隱藏
@@ -385,12 +410,12 @@ public class TimerUI {
         // 音樂選擇與控制
         JPanel musicControl = new JPanel(new FlowLayout());
         musicControl.add(new JLabel("音樂:"));
-        JComboBox<String> musicSelector = new JComboBox<>(new String[] { "海浪", "下雨", "夜晚", "Minecraft" });
+        musicSelector = new JComboBox<>(new String[] { "海浪", "下雨", "夜晚", "Minecraft" });
         musicControl.add(musicSelector);
 
         JButton playBtn = new JButton("播放");
         JButton pauseBtn = new JButton("暫停");
-        JButton forwardBtn = new JButton("快進30s");
+        JButton forwardBtn = new JButton("快進1min");
         JButton stopBtn = new JButton("結束");
 
         // 初始狀態：只有播放按鈕可用
@@ -417,7 +442,7 @@ public class TimerUI {
             if (mp3Player[0] != null) {
                 new Thread(() -> mp3Player[0].stop()).start(); // 停止上一首音樂
             }
-            mp3Player[0] = new MP3Player(selectedMusic);
+            mp3Player[0] = new MP3Player("resources/background_sounds", selectedMusic);
             new Thread(() -> {
                 // 等待 MP3Player 初始化
                 while (!mp3Player[0].isInitialized()) {
@@ -450,6 +475,7 @@ public class TimerUI {
                 forwardBtn.setEnabled(false);
                 stopBtn.setEnabled(false);
                 pauseBtn.setText("暫停"); // 恢復按鈕名稱
+                new Thread(() -> mp3Player[0].dispose()).start();
             }
         });
         
@@ -469,7 +495,7 @@ public class TimerUI {
         forwardBtn.addActionListener(e -> {
             if (mp3Player[0] != null && mp3Player[0].isInitialized()) {
                 System.out.println("快進按鈕被觸發");
-                new Thread(() -> mp3Player[0].fastForward(30)).start(); // 快進 30 秒
+                new Thread(() -> mp3Player[0].fastForward(60)).start(); // 快進 1 分鐘
             } else {
                 System.out.println("快進無效：播放器未初始化");
             }
@@ -477,9 +503,9 @@ public class TimerUI {
 
         // **音量滑塊動作邏輯**
         volumeSlider.addChangeListener(e -> {
+            globalBgmVolume = volumeSlider.getValue() / 100.0; // 音量範圍 0.0 ~ 1.0
             if (mp3Player[0] != null && mp3Player[0].isInitialized()) {
-                double volume = volumeSlider.getValue() / 100.0; // 音量範圍 0.0 ~ 1.0
-                new Thread(() -> mp3Player[0].setVolume(volume)).start();
+                new Thread(() -> mp3Player[0].setVolume(globalBgmVolume)).start();
             } else {
                 System.out.println("音樂播放器未初始化，無法調整音量！");
             }
