@@ -2,7 +2,6 @@ test.java
 bin
 FocusTimerApp.jar
 build/
-.gradle/
 *.class
 
 Lofi.mp3
