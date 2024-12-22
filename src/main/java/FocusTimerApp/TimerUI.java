@@ -123,8 +123,10 @@ public class TimerUI {
         gbc.insets = new Insets(0, 10, 10, 10);
         mainPanel.add(customSoundPanel, gbc);
 
+        frame.pack();
+        frame.setLocation(20, 20);
+
         frame.setVisible(true);
-        frame.pack(); // 強制更新大小(原本分界線顯示不出來)
     }
 
     private JPanel modePanel() {
@@ -410,7 +412,7 @@ public class TimerUI {
         // 音樂選擇與控制
         JPanel musicControl = new JPanel(new FlowLayout());
         musicControl.add(new JLabel("音樂:"));
-        musicSelector = new JComboBox<>(new String[] { "海浪", "下雨", "夜晚", "Minecraft" });
+        musicSelector = new JComboBox<>(new String[] { "Lofi", "鋼琴&雨聲1", "鋼琴&雨聲2", "鋼琴&雨聲3", "溪邊鳥鳴", "純雨聲" , "Minecraft" });
         musicControl.add(musicSelector);
 
         JButton playBtn = new JButton("播放");

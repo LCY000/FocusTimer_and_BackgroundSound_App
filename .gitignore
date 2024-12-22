@@ -1,5 +1,9 @@
 test.java
 bin
 FocusTimerApp.jar
-Minecraft.mp3
-長笛.mp3
+build/
+.gradle/
+*.class
+
+Lofi.mp3
+溪邊鳥鳴.mp3
