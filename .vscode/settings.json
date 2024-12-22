@@ -6,5 +6,6 @@
     "java.project.sourcePaths": [
         "src"
     ],
-    "java.project.outputPath": "bin"
+    "java.project.outputPath": "bin",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

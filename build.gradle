@@ -1,0 +1,42 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'  // 此為 OpenJFX 官方 Gradle plugin (可能有更新版本)
+}
+
+repositories {
+    // Maven Central儲存庫
+    mavenCentral()
+}
+
+java {
+    // 指定Java版本 (若你用JDK 17, 21都可)
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+// 這邊設定JavaFX plugin需要哪些模組
+javafx {
+    version = "21"
+    modules = [ 'javafx.controls', 'javafx.media', 'javafx.swing' ]
+}
+
+// 依賴管理
+dependencies {
+    // FlatLaf 3.5.2 (Maven Central上 groupId:com.formdev, artifactId:flatlaf)
+    implementation 'com.formdev:flatlaf:3.5.2'
+
+    // 如果有其他第三方library，也在這裡加
+    // 例如: implementation 'com.google.guava:guava:31.1-jre'
+}
+
+// 告訴application plugin，你的main class在哪
+application {
+    mainClass = 'FocusTimerApp.App'
+    // 假設你的 main() 在 FocusTimerApp.App
+
+    applicationDefaultJvmArgs = [
+        '--add-exports=javafx.base/com.sun.javafx.logging=ALL-UNNAMED'
+    ]
+}
+
