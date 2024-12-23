@@ -1,4 +1,6 @@
-## 番茄鐘計時、背景音效APP  
+## FocusTimer & BackgroundSound App
+<br>
+
 ```bash
 gradle run
 ```
