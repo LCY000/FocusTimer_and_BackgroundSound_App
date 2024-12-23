@@ -14,15 +14,14 @@ public class TimerUI {
     private JLabel phaseDisplayLabel;
     private JLabel pomodoroTimeDisplayLabel; // 顯示時間的Label
     private JLabel stopwatchTimeDisplayLabel;
-    private JComboBox<String> musicSelector; 
-    private JComboBox<String> soundSelector;
     private double globalBgmVolume = 0.5;   // 背景音樂音量
     private double globalBeepVolume = 0.5;  // 提示音音量
-
     private JSeparator separator;
-    
     private PomodoroTimer pomodoroTimer; // 專注計時器邏輯
     private StopwatchLogic stopwatchLogic;  // 正計時器邏輯
+    //音樂選擇
+    private JComboBox<String> musicSelector = new JComboBox<>(new String[] { "Lofi", "鋼琴&雨聲1", "鋼琴&雨聲2", "鋼琴&雨聲3", "溪邊鳥鳴", "純雨聲" , "Minecraft" });
+    private JComboBox<String> soundSelector = new JComboBox<>(new String[] { "長笛", "提示音1", "提示音2", "蟋蟀聲" });
 
     public void createAndShowGUI() {
         FlatLightLaf.setup(); // 設定 FlatLaf 主題
@@ -365,7 +364,6 @@ public class TimerUI {
         // 1. 提示音效選擇
         JPanel soundSelectorPanel = new JPanel(new FlowLayout());
         soundSelectorPanel.add(new JLabel("提示音效:"));
-        soundSelector = new JComboBox<>(new String[] { "長笛", "提示音1", "提示音2", "蟋蟀聲" });
         soundSelector.setSelectedIndex(0);
         soundSelectorPanel.add(soundSelector);
         customSoundPanel.add(soundSelectorPanel);
@@ -412,7 +410,6 @@ public class TimerUI {
         // 音樂選擇與控制
         JPanel musicControl = new JPanel(new FlowLayout());
         musicControl.add(new JLabel("音樂:"));
-        musicSelector = new JComboBox<>(new String[] { "Lofi", "鋼琴&雨聲1", "鋼琴&雨聲2", "鋼琴&雨聲3", "溪邊鳥鳴", "純雨聲" , "Minecraft" });
         musicControl.add(musicSelector);
 
         JButton playBtn = new JButton("播放");
