@@ -23,6 +23,9 @@ public class TimerUI {
     private JComboBox<String> musicSelector = new JComboBox<>(new String[] { "Lofi", "鋼琴&雨聲1", "鋼琴&雨聲2", "鋼琴&雨聲3", "溪邊鳥鳴", "純雨聲" , "Minecraft" });
     private JComboBox<String> soundSelector = new JComboBox<>(new String[] { "長笛", "提示音1", "提示音2", "蟋蟀聲" });
 
+    /**
+     * 整個大UI架構
+     */
     public void createAndShowGUI() {
         FlatLightLaf.setup(); // 設定 FlatLaf 主題
 
@@ -44,7 +47,6 @@ public class TimerUI {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         mainPanel.add(modePanel(), gbc);
 
-        // **添加水平分界線** //不知道為甚麼顯示不出來
         separator = new JSeparator(SwingConstants.HORIZONTAL);
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -106,7 +108,7 @@ public class TimerUI {
         toggleSoundPanelBtn.addActionListener(e -> {
             boolean isVisible = customSoundPanel.isVisible();
             customSoundPanel.setVisible(!isVisible);
-            frame.pack(); // 調整視窗大小
+            frame.pack();
         });
 
         gbc.gridx = 0;
@@ -128,6 +130,9 @@ public class TimerUI {
         frame.setVisible(true);
     }
 
+    /**
+     * 介面: 上方計時模式切換按鈕區域
+     */
     private JPanel modePanel() {
         topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JToggleButton focusModeBtn = new JToggleButton("專注時間");
@@ -146,7 +151,9 @@ public class TimerUI {
         return topPanel;
     }
 
-    // 專注時間界面
+    /**
+     * 介面: 專注計時UI區
+     */
     private JPanel createFocusPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -244,7 +251,10 @@ public class TimerUI {
         return panel;
     }
 
-    // 測試音效播放
+    /**
+     * 功能: 撥放提示音
+     * @param soundName 音檔名稱  Ex:提示音1
+     */
     private void playSoundEffect(String soundName) {
         // 1) 產生 MP3Player
         MP3Player beepPlayer = new MP3Player("/notification_sounds/" + soundName + ".mp3");
@@ -268,7 +278,9 @@ public class TimerUI {
         }).start();
     }
 
-    // 正計時界面，碼表計時
+    /**
+     * 介面: 正計時UI區
+     */
     private JPanel createTimerPanel() {
         JPanel borderPanel = new JPanel(new BorderLayout());
         JPanel panel = new JPanel(new GridBagLayout());
@@ -355,8 +367,9 @@ public class TimerUI {
         return borderPanel;
     }
 
-
-    // 背景音樂控制區
+    /**
+     * 介面: 自定義提示音的UI區
+     */
     private JPanel createCustomSoundPanel() {
         JPanel customSoundPanel = new JPanel(new GridLayout(3, 1));
         customSoundPanel.setBorder(BorderFactory.createTitledBorder("提示音效"));
@@ -398,7 +411,9 @@ public class TimerUI {
         return customSoundPanel;
     }
 
-    // 背景音樂控制區
+    /**
+     * 介面: 背景音樂控制的UI區
+     */
     private JPanel createBackgroundMusicPanel() {
         // 初始化 JavaFX 環境
         new JFXPanel();
